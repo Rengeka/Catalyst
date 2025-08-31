@@ -17,7 +17,7 @@ internal class TEST
             .AddTrigger(t =>
             {
                 t.Branches = ["main", "develop"];
-                t.TriggerType = TriggerType.Merge | TriggerType.PullRequest;
+                t.TriggerType = TriggerType.Merge & TriggerType.PullRequest;
             })
             .AddStage("stage-1", s =>
             {
