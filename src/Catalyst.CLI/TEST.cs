@@ -1,4 +1,5 @@
-﻿using Catalyst.Core.Enums;
+﻿using Catalyst.Core;
+using Catalyst.Core.Enums;
 using Catalyst.Core.Structs;
 using Catalyst.Github;
 
@@ -33,6 +34,8 @@ internal class TEST
             .AddStage("stage-2", s =>
             {
 
-            }); 
+            });
+
+        pipeline.Build();
     }
 }

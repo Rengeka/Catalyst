@@ -1,4 +1,4 @@
-﻿namespace Catalyst.Core.Structs;
+﻿namespace Catalyst.Core;
 
 public class RunningMachine
 {

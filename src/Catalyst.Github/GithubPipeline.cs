@@ -47,4 +47,9 @@ public class GithubPipeline : IPipeline
         machine.AddRunnable(this);
         return this;
     }
+
+    public void Build()
+    {
+        throw new NotImplementedException();
+    }
 }

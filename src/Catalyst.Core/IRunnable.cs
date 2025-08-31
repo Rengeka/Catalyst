@@ -1,12 +1,25 @@
-﻿using Catalyst.Core.Structs;
-
-namespace Catalyst.Core;
+﻿namespace Catalyst.Core;
 
 /// <summary>
-/// Marker interface for those stages and jobs that have to executed on a concrete machine
+/// Represents an entity that can be executed on a specific <see cref="RunningMachine"/>.
+/// Provides a default runner for convenience.
 /// </summary>
 public interface IRunnable
 {
-    public static readonly RunningMachine DefaultRunningMachine = new("ubuntu-latest");
+    /// <summary>
+    /// The name of the default <see cref="RunningMachine"/> used when no explicit runner is provided.
+    /// Typically corresponds to a commonly available build environment.
+    /// </summary>
+    private const string DEFAULT_RUNNING_MACHINE_NAME = "ubuntu-latest";
+
+    /// <summary>
+    /// The default <see cref="RunningMachine"/> used when no specific runner is provided.
+    /// Typically points to a common build environment (e.g., "ubuntu-latest").
+    /// </summary>
+    public static readonly RunningMachine DefaultRunningMachine = new(DEFAULT_RUNNING_MACHINE_NAME);
+
+    /// <summary>
+    /// Gets the <see cref="RunningMachine"/> on which this runnable will execute.
+    /// </summary>
     public RunningMachine RunningMachine { get; }
 }

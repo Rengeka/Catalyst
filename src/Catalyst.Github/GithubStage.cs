@@ -1,5 +1,4 @@
 ﻿using Catalyst.Core;
-using Catalyst.Core.Structs;
 
 namespace Catalyst.Github;
 
