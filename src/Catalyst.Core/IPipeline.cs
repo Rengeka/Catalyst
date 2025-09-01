@@ -40,5 +40,5 @@ public interface IPipeline : IRunnable
     /// <returns>The current <see cref="IPipeline"/> instance for chaining.</returns>
     public IPipeline SetRunner(RunningMachine machine);
 
-    public void Build();
+    public bool Build();
 }

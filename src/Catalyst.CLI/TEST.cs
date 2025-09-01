@@ -1,39 +1,36 @@
 ﻿using Catalyst.Core;
 using Catalyst.Core.Enums;
-using Catalyst.Core.Structs;
 using Catalyst.Github;
 
 namespace Catalyst.CLI;
 
 internal class TEST
 {
-    void RunTest()
+    public static void RunTest()
     {
         var ubuntu = new RunningMachine("ubuntu-latest");
         var arch = new RunningMachine("archlinux");
 
-        var pipeline = GithubPipeline.Create("name")
+        var pipeline = GithubPipeline.Create("CI Pipeline")
             .SetRunner(ubuntu)
             .AddTrigger(t =>
             {
-                t.Branches = ["main", "develop"];
-                t.TriggerType = TriggerType.Merge & TriggerType.PullRequest;
+                t.Branches = new[] { "main", "develop" };
+                t.TriggerType = TriggerType.Push | TriggerType.PullRequest;
             })
-            .AddStage("stage-1", s =>
+            .AddStage("Build and Test", stage =>
             {
-                s.SetRunner(arch)
-                .AddStep(j =>
-                {
-
-                })
-                .AddStep(j =>
-                {
-
-                });
+                stage.SetRunner(arch)
+                     .AddStep("Checkout", step =>
+                     {
+                         step.SetAction("git checkout $(BranchName)");
+                     })
+                     .AddStep("Build", "dotnet build --no-restore --configuration Release")
+                     .AddStep("Test", "dotnet test --configuration Release");
             })
-            .AddStage("stage-2", s =>
+            .AddStage("Deploy", stage =>
             {
-
+                stage.AddStep("Deploy", "deploy-scripts/deploy.sh");
             });
 
         pipeline.Build();

@@ -2,7 +2,7 @@
 
 namespace Catalyst.Core.Structs;
 
-public struct Trigger
+public class Trigger
 {
     public string[] Branches {  get; set; }
     public TriggerType TriggerType { get; set; }    

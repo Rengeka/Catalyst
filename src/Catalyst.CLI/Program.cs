@@ -1,7 +1,14 @@
-﻿internal class Program
+﻿using Catalyst.CLI;
+
+public class Program
 {
-    private static void Main(string[] args)
+    public static void Main(string[] args)
     {
+        TEST.RunTest();
+
+        return;
+
+
         if (args.Length == 0)
         {
             Console.WriteLine("Usage: catalyst <command> [options]");
