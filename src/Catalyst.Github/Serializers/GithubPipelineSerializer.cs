@@ -1,4 +1,5 @@
 ﻿using Catalyst.Core.Enums;
+using Catalyst.Core.Structs;
 using YamlDotNet.Core;
 using YamlDotNet.Core.Events;
 using YamlDotNet.Serialization;
@@ -87,6 +88,25 @@ public sealed class GithubPipelineSerializer : IYamlTypeConverter
             else
             {
                 emitter.Emit(new Scalar(stage.RunningMachine.Name));
+            }
+
+            if (stage.Needs.Count() > 0)
+            {
+                emitter.Emit(new Scalar("needs"));
+
+                emitter.Emit(new SequenceStart(null, null, true, SequenceStyle.Flow));
+                foreach (var job in stage.Needs)
+                {
+                    emitter.Emit(new Scalar(job));
+                }
+
+                emitter.Emit(new SequenceEnd());
+            }
+
+            if(stage.Condition is not null)
+            {
+                emitter.Emit(new Scalar("if"));
+                emitter.Emit(new Scalar(stage.Condition));
             }
 
             emitter.Emit(new Scalar("steps"));

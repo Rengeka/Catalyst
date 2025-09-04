@@ -17,23 +17,25 @@ internal class TEST
                 t.Branches = new[] { "main", "develop" };
                 t.TriggerType = TriggerType.Push | TriggerType.PullRequest;
             })
-            .AddStage("Build", stage =>
+            .AddStage("build", stage =>
             {
                 stage.AddStep("checkout", step =>
-                     {
-                         step.SetAction("git checkout $(BranchName)");
-                     })
+                    step.SetAction("git checkout $(BranchName)"))
                      .AddStep("build", "dotnet build --no-restore --configuration Release");
             })
-            .AddStage("Test", stage =>
+            .AddStage("test", stage =>
             {
-                stage.AddStep("test", "dotnet test --configuration Release");
+                stage.AddStep("test", "dotnet test --configuration Release")
+                     .WaitFor("Build"); 
             })
-            .AddStage("Deploy", stage =>
+            .AddStage("deploy", stage =>
             {
-                stage.AddStep("deploy", "deploy-scripts/deploy.sh");
+                stage.AddStep("deploy", "deploy-scripts/deploy.sh")
+                     .WaitFor("Test")
+                     .If("github.ref == 'refs/heads/main' && github.event_name == 'push'");
             });
 
         pipeline.Build();
+
     }
 }

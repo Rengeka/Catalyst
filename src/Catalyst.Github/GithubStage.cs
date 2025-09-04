@@ -6,12 +6,15 @@ public class GithubStage : IStage
 {
     public string Name { get; set; }
 
+    public List<string> Needs { get; set; }
     public List<IStep> Steps { get; init; }
+    public string Condition;
 
     public GithubStage(string name)
     {
         Name = name;
         Steps = new List<IStep>();
+        Needs = new List<string>();
     }
 
     private RunningMachine? _runningMachine;
@@ -36,6 +39,18 @@ public class GithubStage : IStage
     public IStage SetRunner(RunningMachine runningMachine)
     {
         _runningMachine = runningMachine;
+        return this;
+    }
+
+    public IStage WaitFor(string name)
+    {
+        Needs.Add(name);
+        return this;
+    }
+
+    public IStage If(string condition)
+    {
+        Condition = condition;
         return this;
     }
 }

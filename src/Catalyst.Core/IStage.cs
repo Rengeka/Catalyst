@@ -17,6 +17,10 @@ public interface IStage : IRunnable
 
     public IStage AddStep(string name, string stepAction);
 
+    public IStage WaitFor(string name);
+
+    public IStage If(string condition);
+
     /// <summary>
     /// Sets the runner machine on which this stage will execute.
     /// Overrides the default runner if one is already set.
