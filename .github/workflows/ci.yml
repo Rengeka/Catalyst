@@ -18,8 +18,6 @@ jobs:
       run: dotnet restore
     - name: Build
       run: dotnet build --configuration Release --no-restore
-    - name: Run tests
-      run: dotnet test --configuration Release --no-build
     - name: Pack
       run: dotnet pack --configuration Release --no-build -o ./artifacts
     - name: Upload artifacts

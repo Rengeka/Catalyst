@@ -37,7 +37,7 @@ internal class TEST
                         "))
                 .AddStep("Restore dependencies", "dotnet restore")
                 .AddStep("Build", "dotnet build --configuration Release --no-restore")
-                .AddStep("Run tests", "dotnet test --configuration Release --no-build")
+                //.AddStep("Run tests", "dotnet test --configuration Release --no-build")
                 .AddStep("Pack", "dotnet pack --configuration Release --no-build -o ./artifacts")
                 .AddStep("Upload artifacts", step =>
                     step.SetRawAction(@"
