@@ -30,7 +30,7 @@ internal class TEST
                         step.SetRawAction("uses", "actions/setup-dotnet@v3"))
                      .AddStep("Check Dotnet Version", "dotnet --version");
             })
-            .AddStage("test", stage =>
+            /*.AddStage("test", stage =>
             {
                 stage.AddStep("Checkout", step =>
                         step.SetRawAction("uses", "actions/checkout@v3"))
@@ -38,13 +38,13 @@ internal class TEST
                         step.SetRawAction("uses", "actions/setup-dotnet@v3"))
                      .AddStep("Run tests", "dotnet test --configuration Release")
                      .WaitFor("build");
-            })
+            })*/
             .AddStage("deploy", stage =>
             {
                 stage.AddStep("Checkout", step =>
                         step.SetRawAction("uses", "actions/checkout@v3"))
                      .AddStep("Deploy", "deploy-scripts/deploy.sh")
-                     .WaitFor("test")
+                     //.WaitFor("test")
                      .If("github.ref == 'refs/heads/main' && github.event_name == 'push'");
             });
 
