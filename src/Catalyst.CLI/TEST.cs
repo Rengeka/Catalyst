@@ -9,28 +9,29 @@ internal class TEST
     public static void RunTest()
     {
         var ubuntu = new RunningMachine("ubuntu-latest");
-        var arch = new RunningMachine("archlinux");
 
         var pipeline = GithubPipeline.Create("CI Pipeline")
-            .SetRunner(ubuntu)
+            .SetGlobalRunner(ubuntu)
             .AddTrigger(t =>
             {
                 t.Branches = new[] { "main", "develop" };
                 t.TriggerType = TriggerType.Push | TriggerType.PullRequest;
             })
-            .AddStage("Build and Test", stage =>
+            .AddStage("Build", stage =>
             {
-                stage.SetRunner(arch)
-                     .AddStep("Checkout", step =>
+                stage.AddStep("checkout", step =>
                      {
                          step.SetAction("git checkout $(BranchName)");
                      })
-                     .AddStep("Build", "dotnet build --no-restore --configuration Release")
-                     .AddStep("Test", "dotnet test --configuration Release");
+                     .AddStep("build", "dotnet build --no-restore --configuration Release");
+            })
+            .AddStage("Test", stage =>
+            {
+                stage.AddStep("test", "dotnet test --configuration Release");
             })
             .AddStage("Deploy", stage =>
             {
-                stage.AddStep("Deploy", "deploy-scripts/deploy.sh");
+                stage.AddStep("deploy", "deploy-scripts/deploy.sh");
             });
 
         pipeline.Build();

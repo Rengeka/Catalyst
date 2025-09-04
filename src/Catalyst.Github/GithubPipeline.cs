@@ -48,7 +48,7 @@ public class GithubPipeline : IPipeline
         return this;
     }
 
-    public IPipeline SetRunner(RunningMachine runningMachine)
+    public IPipeline SetGlobalRunner(RunningMachine runningMachine)
     {
         _runningMachine = runningMachine;
         return this;

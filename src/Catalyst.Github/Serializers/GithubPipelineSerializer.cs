@@ -1,4 +1,5 @@
-﻿using YamlDotNet.Core;
+﻿using Catalyst.Core.Enums;
+using YamlDotNet.Core;
 using YamlDotNet.Core.Events;
 using YamlDotNet.Serialization;
 
@@ -9,6 +10,12 @@ public sealed class GithubPipelineSerializer : IYamlTypeConverter
 {
     public IValueSerializer ValueSerializer { get; set; }
     public IValueDeserializer ValueDeserializer { get; set; }
+
+    public Dictionary<TriggerType, string>  triggerNames = new()
+    {
+        { TriggerType.Push, "push" },
+        { TriggerType.PullRequest, "pull_request" }
+    };
 
     public bool Accepts(Type type)
     {
@@ -29,31 +36,39 @@ public sealed class GithubPipelineSerializer : IYamlTypeConverter
         emitter.Emit(new Scalar("name"));
         emitter.Emit(new Scalar(pipeline.Name));
 
-        if(pipeline.Triggers is not null)
+        if (pipeline.Triggers is not null)
         {
             emitter.Emit(new Scalar("on"));
-            emitter.Emit(new SequenceStart(null, null, true, SequenceStyle.Block));
+            emitter.Emit(new MappingStart()); 
+
             foreach (var trigger in pipeline.Triggers)
             {
-                emitter.Emit(new MappingStart());
-                emitter.Emit(new Scalar("branches"));
-                emitter.Emit(new SequenceStart(null, null, true, SequenceStyle.Block));
-                foreach (var branch in trigger.Branches)
+                foreach (var triggerType in Enum.GetValues(typeof(TriggerType)).Cast<TriggerType>())
                 {
-                    emitter.Emit(new Scalar(branch));
-                }
-                emitter.Emit(new SequenceEnd());
-                emitter.Emit(new Scalar("trigger-type"));
-                emitter.Emit(new Scalar(trigger.TriggerType.ToString()));
-                emitter.Emit(new MappingEnd());
-            }
-            emitter.Emit(new SequenceEnd());
-        }
+                    if (triggerType == TriggerType.None) continue;
 
-        if (pipeline.RunningMachine != IRunnable.DefaultRunningMachine)
-        {
-            emitter.Emit(new Scalar("runs-on"));
-            emitter.Emit(new Scalar(pipeline.RunningMachine.Name));
+                    if (trigger.TriggerType.HasFlag(triggerType))
+                    {
+                        var triggerName = triggerNames[triggerType];
+
+                        emitter.Emit(new Scalar(triggerName));
+
+                        emitter.Emit(new MappingStart());
+                        emitter.Emit(new Scalar("branches"));
+                        emitter.Emit(new SequenceStart(null, null, true, SequenceStyle.Flow));
+
+                        foreach (var branch in trigger.Branches)
+                        {
+                            emitter.Emit(new Scalar(branch));
+                        }
+
+                        emitter.Emit(new SequenceEnd());
+                        emitter.Emit(new MappingEnd());
+                    }
+                }
+            }
+
+            emitter.Emit(new MappingEnd());
         }
 
         emitter.Emit(new Scalar("jobs"));
@@ -63,6 +78,16 @@ public sealed class GithubPipelineSerializer : IYamlTypeConverter
         {
             emitter.Emit(new Scalar(stage.Name));
             emitter.Emit(new MappingStart());
+
+            emitter.Emit(new Scalar("runs-on"));
+            if (stage.RunningMachine is null)
+            {
+                emitter.Emit(new Scalar(pipeline.RunningMachine.Name));
+            }
+            else
+            {
+                emitter.Emit(new Scalar(stage.RunningMachine.Name));
+            }
 
             emitter.Emit(new Scalar("steps"));
             emitter.Emit(new SequenceStart(null, null, true, SequenceStyle.Block)); 

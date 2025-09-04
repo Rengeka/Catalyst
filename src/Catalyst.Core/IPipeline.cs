@@ -38,7 +38,7 @@ public interface IPipeline : IRunnable
     /// </summary>
     /// <param name="machine">The <see cref="RunningMachine"/> that will run the pipeline.</param>
     /// <returns>The current <see cref="IPipeline"/> instance for chaining.</returns>
-    public IPipeline SetRunner(RunningMachine machine);
+    public IPipeline SetGlobalRunner(RunningMachine machine);
 
     public bool Build();
 }
