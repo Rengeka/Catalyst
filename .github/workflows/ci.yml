@@ -9,17 +9,31 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
-    - name: Install .NET SDK
-      uses: actions/setup-dotnet@v3
-    - name: Check Dotnet Version
-      run: dotnet --version
-  deploy:
+      uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.x
+    - name: Restore dependencies
+      run: dotnet restore src/Catalyst.sln
+    - name: Build
+      run: dotnet build src/Catalyst.sln --configuration Release --no-restore
+    - name: Pack
+      run: dotnet pack src/Catalyst.sln --configuration Release --no-build -o ./artifacts
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: nuget-packages
+        path: ./artifacts/*.nupkg
+  publish:
     runs-on: ubuntu-latest
-    needs: [test]
+    needs: [build]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-    - name: Deploy
-      run: deploy-scripts/deploy.sh
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: nuget-packages
+        path: ./artifacts
+    - name: Publish to NuGet
+      run: dotnet nuget push ./artifacts/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
