@@ -1,39 +1,51 @@
 ﻿using Catalyst.Core;
 using Catalyst.Core.Enums;
-using Catalyst.Core.Structs;
 using Catalyst.Github;
 
 namespace Catalyst.CLI;
 
 internal class TEST
 {
-    void RunTest()
+    public static void RunTest()
     {
         var ubuntu = new RunningMachine("ubuntu-latest");
-        var arch = new RunningMachine("archlinux");
 
-        var pipeline = GithubPipeline.Create("name")
-            .SetRunner(ubuntu)
+        var pipeline = GithubPipeline.Create("CI Pipeline")
+            .SetGlobalRunner(ubuntu)
             .AddTrigger(t =>
             {
-                t.Branches = ["main", "develop"];
-                t.TriggerType = TriggerType.Merge & TriggerType.PullRequest;
+                t.Branches = new[] { "main" };
+                t.TriggerType = TriggerType.PullRequest;
             })
-            .AddStage("stage-1", s =>
+            .AddTrigger(t =>
             {
-                s.SetRunner(arch)
-                .AddStep(j =>
-                {
-
-                })
-                .AddStep(j =>
-                {
-
-                });
+                t.Branches = new[] { "main" };
+                t.TriggerType = TriggerType.Push;
             })
-            .AddStage("stage-2", s =>
+            .AddStage("build", stage =>
             {
-
+                stage.AddStep("Checkout", step =>
+                        step.SetRawAction("uses", "actions/checkout@v3"))
+                     .AddStep("Install .NET SDK", step =>
+                        step.SetRawAction("uses", "actions/setup-dotnet@v3"))
+                     .AddStep("Check Dotnet Version", "dotnet --version");
+            })
+            .AddStage("test", stage =>
+            {
+                stage.AddStep("Checkout", step =>
+                        step.SetRawAction("uses", "actions/checkout@v3"))
+                     .AddStep("Install .NET SDK", step =>
+                        step.SetRawAction("uses", "actions/setup-dotnet@v3"))
+                     .AddStep("Run tests", "dotnet test --configuration Release")
+                     .WaitFor("build");
+            })
+            .AddStage("deploy", stage =>
+            {
+                stage.AddStep("Checkout", step =>
+                        step.SetRawAction("uses", "actions/checkout@v3"))
+                     .AddStep("Deploy", "deploy-scripts/deploy.sh")
+                     .WaitFor("test")
+                     .If("github.ref == 'refs/heads/main' && github.event_name == 'push'");
             });
 
         pipeline.Build();

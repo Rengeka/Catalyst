@@ -1,23 +1,30 @@
 ﻿using Catalyst.Core;
 using Catalyst.Core.Structs;
+using Catalyst.Github.Serializers;
+using YamlDotNet.Serialization;
 
 namespace Catalyst.Github;
 
 public class GithubPipeline : IPipeline
 {
-    private readonly string _name;
+    public string Name { get; set; }
 
-    private readonly List<IStage> _stages;
-    private readonly List<Trigger> _triggers;
+    public List<Trigger> Triggers { get; init; }
+
+    public string RunningMachineValue => RunningMachine.Name;
+
+    public List<IStage> Jobs { get; init; }
 
     private GithubPipeline(string name)
     {
-        _name = name;
-        _stages = new List<IStage>();
-        _triggers = new List<Trigger>();
+        Name = name;
+        Jobs = new List<IStage>();
+        Triggers = new List<Trigger>();
     }
 
     private RunningMachine? _runningMachine;
+
+    [YamlIgnore]
     public RunningMachine RunningMachine => _runningMachine ?? IRunnable.DefaultRunningMachine;
 
     public static IPipeline Create(string name)
@@ -27,9 +34,9 @@ public class GithubPipeline : IPipeline
 
     public IPipeline AddStage(string name, Action<IStage> action)
     {
-        var stage = new GithubStage(name);
-        action(stage);
-        _stages.Add(stage);
+        var job = new GithubStage(name);
+        action(job);
+        Jobs.Add(job);
         return this;
     }
 
@@ -37,19 +44,29 @@ public class GithubPipeline : IPipeline
     {
         var trigger = new Trigger();
         action(trigger);
-        _triggers.Add(trigger);
+        Triggers.Add(trigger);
         return this;
     }
 
-    public IPipeline SetRunner(RunningMachine machine)
+    public IPipeline SetGlobalRunner(RunningMachine runningMachine)
     {
-        _runningMachine = machine;
-        machine.AddRunnable(this);
+        _runningMachine = runningMachine;
         return this;
     }
 
-    public void Build()
+    public bool Build()
     {
-        throw new NotImplementedException();
+        var serializer = new SerializerBuilder()
+            .WithNamingConvention(new KebabCaseNamingConvention())
+            .WithTypeConverter(new GithubPipelineSerializer())
+            //.ConfigureDefaultValuesHandling(DefaultValuesHandling.OmitDefaults)
+            .Build();
+
+        string yaml = serializer.Serialize(this);
+
+        Directory.CreateDirectory(".github/workflows");
+        File.WriteAllText(".github/workflows/ci.yml", yaml);
+
+        return true;
     }
 }
