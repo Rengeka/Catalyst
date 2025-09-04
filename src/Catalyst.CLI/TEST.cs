@@ -35,10 +35,26 @@ internal class TEST
                         with:
                             dotnet-version: 8.x
                         "))
-                .AddStep("Restore dependencies", "dotnet restore")
-                .AddStep("Build", "dotnet build --configuration Release --no-restore")
-                //.AddStep("Run tests", "dotnet test --configuration Release --no-build")
-                .AddStep("Pack", "dotnet pack --configuration Release --no-build -o ./artifacts")
+                .AddStep("Restore dependencies", step =>
+                    step.SetRawAction(@"
+                        run: dotnet restore
+                        working-directory: src
+                        "))
+                .AddStep("Build", step =>
+                    step.SetRawAction(@"
+                        run: dotnet build --configuration Release --no-restore
+                        working-directory: src
+                        "))
+                //.AddStep("Run tests", step =>
+                //    step.SetRawAction(@"
+                //        run: dotnet test --configuration Release --no-build
+                //        working-directory: src
+                //        "))
+                .AddStep("Pack", step =>
+                    step.SetRawAction(@"
+                        run: dotnet pack --configuration Release --no-build -o ./artifacts
+                        working-directory: src
+                        "))
                 .AddStep("Upload artifacts", step =>
                     step.SetRawAction(@"
                         uses: actions/upload-artifact@v4
@@ -61,6 +77,7 @@ internal class TEST
                      .AddStep("Publish to NuGet", step =>
                         step.SetRawAction(@"
                             run: dotnet nuget push ./artifacts/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+                            working-directory: src
                             "));
             });
 

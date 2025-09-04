@@ -16,10 +16,13 @@ jobs:
         dotnet-version: 8.x
     - name: Restore dependencies
       run: dotnet restore
+      working-directory: src
     - name: Build
       run: dotnet build --configuration Release --no-restore
+      working-directory: src
     - name: Pack
       run: dotnet pack --configuration Release --no-build -o ./artifacts
+      working-directory: src
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -37,3 +40,4 @@ jobs:
         path: ./artifacts
     - name: Publish to NuGet
       run: dotnet nuget push ./artifacts/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+      working-directory: src
