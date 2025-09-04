@@ -117,6 +117,15 @@ public sealed class GithubPipelineSerializer : IYamlTypeConverter
                 emitter.Emit(new MappingStart());
                 emitter.Emit(new Scalar("name"));
                 emitter.Emit(new Scalar(step.Name));
+
+                if (step.IsRaw)
+                {
+                    emitter.Emit(new Scalar(step.RawKey));
+                    emitter.Emit(new Scalar(step.StepAction));
+                    emitter.Emit(new MappingEnd());
+                    continue;
+                }
+
                 emitter.Emit(new Scalar("run"));
                 emitter.Emit(new Scalar(step.StepAction));
                 emitter.Emit(new MappingEnd());

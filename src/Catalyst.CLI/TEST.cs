@@ -14,28 +14,40 @@ internal class TEST
             .SetGlobalRunner(ubuntu)
             .AddTrigger(t =>
             {
-                t.Branches = new[] { "main", "develop" };
-                t.TriggerType = TriggerType.Push | TriggerType.PullRequest;
+                t.Branches = new[] { "main" };
+                t.TriggerType = TriggerType.PullRequest;
+            })
+            .AddTrigger(t =>
+            {
+                t.Branches = new[] { "main" };
+                t.TriggerType = TriggerType.Push;
             })
             .AddStage("build", stage =>
             {
-                stage.AddStep("checkout", step =>
-                    step.SetAction("git checkout $(BranchName)"))
-                     .AddStep("build", "dotnet build --no-restore --configuration Release");
+                stage.AddStep("Checkout", step =>
+                        step.SetRawAction("uses", "actions/checkout@v3"))
+                     .AddStep("Install .NET SDK", step =>
+                        step.SetRawAction("uses", "actions/setup-dotnet@v3"))
+                     .AddStep("Check Dotnet Version", "dotnet --version");
             })
             .AddStage("test", stage =>
             {
-                stage.AddStep("test", "dotnet test --configuration Release")
-                     .WaitFor("Build"); 
+                stage.AddStep("Checkout", step =>
+                        step.SetRawAction("uses", "actions/checkout@v3"))
+                     .AddStep("Install .NET SDK", step =>
+                        step.SetRawAction("uses", "actions/setup-dotnet@v3"))
+                     .AddStep("Run tests", "dotnet test --configuration Release")
+                     .WaitFor("build");
             })
             .AddStage("deploy", stage =>
             {
-                stage.AddStep("deploy", "deploy-scripts/deploy.sh")
-                     .WaitFor("Test")
+                stage.AddStep("Checkout", step =>
+                        step.SetRawAction("uses", "actions/checkout@v3"))
+                     .AddStep("Deploy", "deploy-scripts/deploy.sh")
+                     .WaitFor("test")
                      .If("github.ref == 'refs/heads/main' && github.event_name == 'push'");
             });
 
         pipeline.Build();
-
     }
 }
