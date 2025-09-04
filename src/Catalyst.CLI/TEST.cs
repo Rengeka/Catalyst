@@ -14,12 +14,12 @@ internal class TEST
             .SetGlobalRunner(ubuntu)
             .AddTrigger(t =>
             {
-                t.Branches = new[] { "main" };
+                t.Branches = ["main"];
                 t.TriggerType = TriggerType.PullRequest;
             })
             .AddTrigger(t =>
             {
-                t.Branches = new[] { "main" };
+                t.Branches = ["main"];
                 t.TriggerType = TriggerType.Push;
             })
             .AddStage("build", stage =>
@@ -33,7 +33,7 @@ internal class TEST
                     step.SetRawAction(@"
                         uses: actions/setup-dotnet@v4
                         with:
-                            dotnet-version: 8.x
+                            dotnet-version: 9.x
                         "))
                 .AddStep("Restore dependencies", step =>
                     step.SetRawAction(@"
