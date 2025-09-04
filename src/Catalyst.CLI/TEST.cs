@@ -14,12 +14,12 @@ internal class TEST
             .SetGlobalRunner(ubuntu)
             .AddTrigger(t =>
             {
-                t.Branches = ["main"];
+                t.Branches = new[] { "main" };
                 t.TriggerType = TriggerType.PullRequest;
             })
             .AddTrigger(t =>
             {
-                t.Branches = ["main"];
+                t.Branches = new[] { "main" };
                 t.TriggerType = TriggerType.Push;
             })
             .AddStage("build", stage =>
@@ -37,23 +37,19 @@ internal class TEST
                         "))
                 .AddStep("Restore dependencies", step =>
                     step.SetRawAction(@"
-                        run: dotnet restore
-                        working-directory: src
+                        run: dotnet restore src/Catalyst.sln
                         "))
                 .AddStep("Build", step =>
                     step.SetRawAction(@"
-                        run: dotnet build --configuration Release --no-restore
-                        working-directory: src
+                        run: dotnet build src/Catalyst.sln --configuration Release --no-restore
                         "))
                 //.AddStep("Run tests", step =>
                 //    step.SetRawAction(@"
-                //        run: dotnet test --configuration Release --no-build
-                //        working-directory: src
+                //        run: dotnet test src/Catalyst.sln --configuration Release --no-build
                 //        "))
                 .AddStep("Pack", step =>
                     step.SetRawAction(@"
-                        run: dotnet pack --configuration Release --no-build -o ./artifacts
-                        working-directory: src
+                        run: dotnet pack src/Catalyst.sln --configuration Release --no-build -o ./artifacts
                         "))
                 .AddStep("Upload artifacts", step =>
                     step.SetRawAction(@"
@@ -77,7 +73,6 @@ internal class TEST
                      .AddStep("Publish to NuGet", step =>
                         step.SetRawAction(@"
                             run: dotnet nuget push ./artifacts/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
-                            working-directory: src
                             "));
             });
 
