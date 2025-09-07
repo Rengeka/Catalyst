@@ -1,13 +1,7 @@
-﻿using Catalyst.CLI;
-
-public class Program
+﻿public class Program
 {
     public static void Main(string[] args)
     {
-        TEST.RunTest();
-
-        return;
-
 
         if (args.Length == 0)
         {
@@ -33,22 +27,30 @@ public class Program
 
     private static void HandleInit(string[] args)
     {
-        // catalyst init [options]
-        bool force = args.Contains("--force");
-        string? path = null;
+        Console.WriteLine("Initializing catalyst...");
 
-        for (int i = 0; i < args.Length; i++)
+        string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources/Template");
+        string targetPath = Path.Combine(Directory.GetCurrentDirectory(), "pipeline.csx");
+
+        if (!File.Exists(templatePath))
         {
-            if (args[i] == "--path" && i + 1 < args.Length)
-                path = args[i + 1];
+            Console.WriteLine("Template not found. Please check if Catalyst package is not corrupt");
+            return;
         }
 
-        Console.WriteLine($"Init command: force={force}, path={path ?? "default"}");
+        if (File.Exists(targetPath))
+        {
+            Console.WriteLine("File pipeline.csx allready exists in target directory");
+            return;
+        }
+
+        File.Copy(templatePath, targetPath);
+        Console.WriteLine("pipeline.csx Was successfully created in the target directory");
     }
 
     private static void HandleBuild(string[] args)
     {
         // catalyst build [OPTIONS]
-        Console.WriteLine("Build completed");
+        Console.WriteLine("Build is cur3rentlty unsupported. Please check if the new version is available");
     }
 }

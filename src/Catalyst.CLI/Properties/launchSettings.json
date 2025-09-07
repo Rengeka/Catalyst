@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Catalyst.CLI": {
+      "commandName": "Project",
+      "commandLineArgs": "init"
+    }
+  }
+}

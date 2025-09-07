@@ -16,33 +16,70 @@ It is inspired by the *Pipeline as Code* principle and provides a clean C# API t
 
 ## 📦 Installation
 > ⚠️ The project is still in development.  
-NuGet package publishing is planned for future releases.
 
-For now, you can include Catalyst via a local `ProjectReference`.
+Install packages Catalyst.Core, Catalyst.Github (If you are running github actions) and Catalyst.CLI (Optional)
+```bash
+dotnet add package Catalyst.Core --version 1.0.0
+dotnet add package Catalyst.Github --version 1.0.0
+dotnet add package Catalyst.CLI --version 1.0.0
+```
+
+You may create a .NET project manually and include the Core and Github packages or you may use Catalyst.CLI:
+```bash
+catalyst init
+```
+
+Install dotnet script:
+```bash
+dotnet tool install -g dotnet-script
+```
+
+This will create pipeline.csx sample file. Just run:
+```bash 
+dotnet script pipeline.csx
+```
 
 ---
 
 ## 📝 Example
 
 ```csharp
+#r "nuget: Catalyst.Core, 1.0.0"
+#r "nuget: Catalyst.Github, 1.0.0"
+
+using Catalyst.Core;
+using Catalyst.Core.Enums;
+using Catalyst.Github;
+
+var ubuntu = new RunningMachine("ubuntu-latest");
+
 var pipeline = GithubPipeline.Create("CI Pipeline")
-    .SetRunner(ubuntu)
+    .SetGlobalRunner(ubuntu)
     .AddTrigger(t =>
     {
-        t.Branches = new[] { "main", "develop" };
-        t.TriggerType = TriggerType.Push | TriggerType.PullRequest;
+        t.Branches = ["main"];
+        t.TriggerType = TriggerType.PullRequest;
     })
-    .AddStage("Build and Test", stage =>
+    .AddTrigger(t =>
     {
-        stage.SetRunner(arch)
-                .AddStep("Checkout", step =>
-                {
-                    step.SetAction("git checkout $(BranchName)");
-                })
-                .AddStep("Build", "dotnet build --no-restore --configuration Release")
-                .AddStep("Test", "dotnet test --configuration Release");
+        t.Branches = ["main"];
+        t.TriggerType = TriggerType.Push;
     })
-    .AddStage("Deploy", stage =>
+    .AddStage("build", stage =>
     {
-        stage.AddStep("Deploy", "deploy-scripts/deploy.sh");
+        stage
+        .AddStep("Checkout", step =>
+            step.SetRawAction(@"
+                uses: actions/checkout@v4
+                "));
+    })
+    .AddStage("publish", stage =>
+    {
+        stage.WaitFor("build")
+             .AddStep("Publish", step =>
+             {
+
+             });
     });
+
+pipeline.Build();
