@@ -12,4 +12,10 @@
     <ProjectReference Include="..\Catalyst.Github\Catalyst.Github.csproj" />
   </ItemGroup>
 
+	<ItemGroup>
+		<None Include="Resources\**\*">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+
 </Project>

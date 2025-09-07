@@ -1,0 +1,39 @@
+﻿#r "nuget: Catalyst.Core, 1.0.0"
+#r "nuget: Catalyst.Github, 1.0.0"
+
+using Catalyst.Core;
+using Catalyst.Core.Enums;
+using Catalyst.Github;
+
+var ubuntu = new RunningMachine("ubuntu-latest");
+
+var pipeline = GithubPipeline.Create("CI Pipeline")
+    .SetGlobalRunner(ubuntu)
+    .AddTrigger(t =>
+    {
+        t.Branches = ["main"];
+        t.TriggerType = TriggerType.PullRequest;
+    })
+    .AddTrigger(t =>
+    {
+        t.Branches = ["main"];
+        t.TriggerType = TriggerType.Push;
+    })
+    .AddStage("build", stage =>
+    {
+        stage
+        .AddStep("Checkout", step =>
+            step.SetRawAction(@"
+                uses: actions/checkout@v4
+                "));
+    })
+    .AddStage("publish", stage =>
+    {
+        stage.WaitFor("build")
+             .AddStep("Publish", step =>
+             {
+
+             });
+    });
+
+pipeline.Build();
