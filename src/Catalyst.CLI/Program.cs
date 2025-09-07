@@ -4,10 +4,6 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        TEST.RunTest();
-
-        return;
-
 
         if (args.Length == 0)
         {
